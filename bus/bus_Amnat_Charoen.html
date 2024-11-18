@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ตำแหน่งการขนส่งสาธารณะเพื่อคนพิการและผู้สูงอายุ</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        #map {
+            height: 800px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>แผนที่การขนส่งสาธารณะทางบกเพื่อคนพิการและผู้สูงอายุ</h1>
+    <div id="map"></div>
+    <script>
+        const ORS_API_KEY = "5b3ce3597851110001cf62488da3afaec8844bf9b0924e3d15c8f10c"; // ใส่ API Key ของคุณ
+
+        // สร้างแผนที่พื้นฐาน
+        const map = L.map('map').setView([13.736717, 100.523186], 12); // เริ่มที่กรุงเทพฯ
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+            maxZoom: 18,
+        }).addTo(map);
+
+        let userMarker; // เก็บ Marker ตำแหน่งผู้ใช้
+        let routeLine; // เส้นทางจากตำแหน่งปัจจุบันไปยังสถานี
+
+        // ฟังก์ชันดึงชื่อสถานที่จากตำแหน่ง (Reverse Geocoding)
+        async function getPlaceName(lat, lng) {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+            const data = await response.json();
+            return data.display_name || "ไม่สามารถระบุสถานที่ได้";
+        }
+
+        // ฟังก์ชันเพิ่ม Marker พร้อม Popup แสดงข้อมูลสถานที่
+        async function addFixedMarker(lat, lng, stationName) {
+            const placeName = await getPlaceName(lat, lng); // ดึงข้อมูลชื่อสถานที่
+
+            const stationMarker = L.marker([lat, lng]).addTo(map)
+                .bindPopup(`<b>${stationName}</b><br>ตำแหน่ง: ${placeName}`); // Popup แสดงข้อมูล
+
+            // เมื่อคลิกที่ Marker จะวาดเส้นทางจากตำแหน่งปัจจุบันไปยังสถานี
+            stationMarker.on('click', async function () {
+                if (!userMarker) {
+                    alert("กรุณารอจนกว่าตำแหน่งของคุณจะถูกกำหนด");
+                    return;
+                }
+
+                const userLat = userMarker.getLatLng().lat;
+                const userLng = userMarker.getLatLng().lng;
+
+                // วาดเส้นทางโดยใช้ ORS API
+                await drawRoute(userLat, userLng, lat, lng);
+            });
+        }
+
+        // ฟังก์ชันวาดเส้นทางโดยใช้ OpenRouteService API
+        async function drawRoute(lat1, lng1, lat2, lng2) {
+            if (routeLine) map.removeLayer(routeLine); // ลบเส้นทางเดิมถ้ามี
+
+            try {
+                const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${ORS_API_KEY}&start=${lng1},${lat1}&end=${lng2},${lat2}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // รับข้อมูลเส้นทางจาก API และแปลงเป็น GeoJSON
+                const coordinates = data.features[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                
+                // วาดเส้นทางในแผนที่
+                routeLine = L.polyline(coordinates, { color: 'blue', weight: 4 }).addTo(map);
+
+                // ซูมให้เห็นเส้นทางทั้งหมด
+                map.fitBounds(routeLine.getBounds());
+            } catch (error) {
+                console.error("เกิดข้อผิดพลาดในการดึงข้อมูลเส้นทาง:", error);
+                alert("ไม่สามารถสร้างเส้นทางได้ กรุณาลองใหม่");
+            }
+        }
+
+        // ฟังก์ชันหาตำแหน่งผู้ใช้และปักหมุดตำแหน่งปัจจุบัน (สีแดง)
+        function locateUser() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async function (position) {
+                        const userLat = position.coords.latitude;
+                        const userLng = position.coords.longitude;
+
+                        // ลบ Marker เดิมถ้ามี
+                        if (userMarker) map.removeLayer(userMarker);
+
+                        // ดึงชื่อสถานที่จาก Reverse Geocoding
+                        const placeName = await getPlaceName(userLat, userLng);
+
+                        // อัพเดตตำแหน่งในแผนที่
+                        map.setView([userLat, userLng], 15);
+                        userMarker = L.marker([userLat, userLng], { icon: L.icon({
+                            iconUrl: 'https://cdn-icons-png.flaticon.com/512/482/482986.png', // ไอคอนสีแดง
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 30],
+                        })}).addTo(map)
+                            .bindPopup(`ตำแหน่งของคุณ: ${placeName}`)
+                            .openPopup();
+                    },
+                    function (error) {
+                        alert("ไม่สามารถหาตำแหน่งของคุณได้: " + error.message);
+                    },
+                    {
+                        enableHighAccuracy: true, // ขอข้อมูลตำแหน่งที่มีความแม่นยำสูง
+                        timeout: 25000,          // รอข้อมูลไม่เกิน 25 วินาที
+                        maximumAge: 0            // ไม่ใช้ข้อมูลตำแหน่งเก่า
+                    }
+                );
+            } else {
+                alert("เบราว์เซอร์ของคุณไม่รองรับ Geolocation API");
+            }
+        }
+
+        // เรียกใช้ locateUser() โดยอัตโนมัติเมื่อโหลดหน้า
+        locateUser();
+
+        // เพิ่ม Marker สถานีขนส่งพร้อมชื่อ
+        addFixedMarker(15.67712718, 104.8512928, "สถานีขนส่งผู้โดยสารอำนาจเจริญ");
+
+    </script>
+</body>
+</html>

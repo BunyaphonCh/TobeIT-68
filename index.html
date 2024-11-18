@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FacilityMap</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            color: #2a6eb5;
+            margin-top: 20px;
+        }
+        p {
+            margin: 10px 0 20px;
+            color: #555;
+        }
+        .map-container {
+            margin-top: 20px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .button {
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            width: 150px;
+            background-color: white;
+        }
+        .button img {
+            width: 60px;
+            height: 60px;
+        }
+        .button:hover {
+            background-color: #f0f0f0;
+            border-color: #2a6eb5;
+        }
+        .button.active {
+            background-color: #e0e0e0;
+            border-color: #2a6eb5;
+        }
+        .dropdown-container {
+            margin-top: 20px;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+        }
+        .confirm-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #2a6eb5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .confirm-button:hover {
+            background-color: #1a4e8a;
+        }
+    </style>
+</head>
+<body>
+    <h1>FacilityMap</h1>
+    <p>เว็บแผนที่การขนส่งสาธารณะเพื่อคนพิการและผู้สูงอายุ<br>ที่ช่วยประเมินสิ่งอำนวยความสะดวกขั้นพื้นฐาน</p>
+    <div class="map-container">
+        <img src="image/thailand-map.png" alt="แผนที่ประเทศไทย" style="width: 200px;">
+    </div>
+    <h2>โปรดเลือกยานพาหนะสำหรับการเดินทาง</h2>
+    <div class="button-container">
+        <div class="button" id="bus" onclick="selectTransport('bus')">
+            <img src="image/bus-icon.png" alt="รถโดยสาร">
+            <p>รถโดยสาร</p>
+        </div>
+        <div class="button" id="train" onclick="selectTransport('train')">
+            <img src="image/train-icon.png" alt="รถไฟฟ้า">
+            <p>รถไฟฟ้า</p>
+        </div>
+        <div class="button" id="air" onclick="selectTransport('air')">
+            <img src="image/air-icon.png" alt="เครื่องบิน">
+            <p>เครื่องบิน</p>
+        </div>
+    </div>
+
+    <div class="dropdown-container">
+        <h3>เลือกจังหวัด</h3>
+        <select id="province">
+            <option value="">-- กรุณาเลือกจังหวัด --</option>
+            <option value="Bangkok">กรุงเทพมหานคร</option>
+            <option value="Chiang_Mai">เชียงใหม่</option>
+            <option value="Phuket">ภูเก็ต</option>
+            <option value="Khon_Kaen">ขอนแก่น</option>
+            <option value="Nakhon_Ratchasima">นครราชสีมา</option>
+            <option value="Songkhla">สงขลา</option>
+            <option value="Suvarnabhumi">สุวรรณภูมิ</option>
+            <option value="Chiang_Rai">เชียงราย</option>
+            <option value="Phetchabun">เพชรบูรณ์</option>
+            <option value="Phrae">เเพร่</option>
+            <option value="Mae_Hong_Son">เเม่ฮ่องสอน</option>
+            <option value="Krabi">กระบี่</option>
+            <option value="Khon_Kaen">ขอนแก่น</option>
+            <option value="Chumphon">ชุมพร</option>
+            <option value="Trang">ตรัง</option>
+            <option value="Nakhon_Phanom">นครพนม</option>
+            <option value="Nakhon_Si_Thammarat">นครศรีธรรมราช</option>
+            <option value="Narathiwat">นราธิวาส</option>
+            <option value="Buriram">บุรีรัมย์</option>
+            <option value="Roi_Et">ร้อยเอ็ด</option>
+            <option value="Ranong">ระนอง</option>
+            <option value="Lampang">ลำปาง</option>
+            <option value="Sakon_Nakhon">สกลนคร</option>
+            <option value="Surat_Thani">สุราษฎร์ธานี</option>
+            <option value="Prachuap_Khiri_Khan">ประจวบคีรีขันธ์</option>
+            <option value="Ubon_Ratchathani">อุบลราชธานี</option>
+            <option value="Udon_Thani">อุดรธานี</option>
+            <option value="Phitsanulok">พิษณุโลก</option>
+            <option value="Nan">น่าน</option>
+            <option value="Loei">เลย</option>
+            <option value="Tak">ตาก</option>
+            <option value="Kanchanaburi">กาญจนบุรี</option>
+            <option value="Kalasin">กาฬสินธุ์</option>
+            <option value="Kamphaeng_Phet">กำเเพงเพชร</option>
+            <option value="Chanthaburi">จันทบุรี</option>
+            <option value="Chachoengsao">ฉะเชิงเทรา</option>
+            <option value="Chonburi">ชลบุรี</option>
+            <option value="Chai_Nat">ชัยนาท</option>
+            <option value="Chaiyaphum">ชัยภูมิ</option>
+            <option value="Trat">ตราด</option>
+            <option value="Nakhon_Nayok">นครนายก</option>
+            <option value="Nakhon_Pathom">นครปฐม</option>
+            <option value="Nakhon_Sawan">นครสวรรค์</option>
+            <option value="Narathiwat">นราธิวาส</option>
+            <option value="Nan">น่าน</option>
+            <option value="Bueng_Kan">บึงกาฬ</option>
+            <option value="Buriram">บุรีรัมย์</option>
+            <option value="Prachin_Buri">ปราจีนบุรี</option>
+            <option value="Pattani">ปัตตานี</option>
+            <option value="Ayutthaya">พระนครศรีอยุธยา</option>
+            <option value="Phayao">พะเยา</option>
+            <option value="Phangnga">พังงา</option>
+            <option value="Phatthalung">พัทลุง</option>
+            <option value="Phichit">พิจิตร</option>
+            <option value="Phitsanulok">พิษณุโลก</option>
+            <option value="Phrae">เเพร่</option>
+            <option value="Phuket">ภูเก็ต</option>
+            <option value="Maha_Sarakham">มหาสารคาม</option>
+            <option value="Mukdahan">มุกดาหาร</option>
+            <option value="Yasothon">ยโสธร</option>
+            <option value="Yala">ยะลา</option>
+            <option value="Roi_Et">ร้อยเอ็ด</option>
+            <option value="Ratchaburi">ราชบุรี</option>
+            <option value="Rayong">ระยอง</option>
+            <option value="Lop_Buri">ลพบุรี</option>
+            <option value="Lampang">ลำปาง</option>
+            <option value="Lamphun">ลำพูน</option>
+            <option value="Si_Sa_Ket">ศรีสะเกษ</option>
+            <option value="Satun">สตูล</option>
+            <option value="Sa_Kaeo">สระเเก้ว</option>
+            <option value="Saraburi">สระบุรี</option>
+            <option value="Sing_Buri">สิงห์บุรี</option>
+            <option value="Sukhothai">สุโขทัย</option>
+            <option value="Suphan_Buri">สุพรรณบุรี</option>
+            <option value="Surin">สุรินทร์</option>
+            <option value="Nong_Khai">หนองคาย</option>
+            <option value="Bua_Lamphu">หนองบัวลำภู</option>
+            <option value="Amnat_Charoen">อำนาจเจริญ</option>
+            <option value="Udon_Thani">อุดรธานี</option>
+            <option value="Uttaradit">อุตรดิตถ์</option>
+            <option value="Uthai_Thani">อุทัยธานี</option>
+            <option value="Ubon_Ratchathani">อุบลราชธานี</option>
+            <option value="Nonthaburi">นนทบุรี</option>
+            <option value="Kamphaeng_Phet">กำแพงเพชร</option>
+            <option value="Samut_Prakan">สมุทรปราการ</option>
+            <option value="Pathum_Thani">ปทุมธานี</option>
+            <option value="Amnat_Charoen">อำนาจเจริญ</option>
+
+        </select>
+    </div>
+
+    <button class="confirm-button" onclick="confirmSelection()">ยืนยัน</button>
+
+    <script>
+        let selectedTransport = "";
+
+        function selectTransport(transport) {
+            // ลบ class 'active' ออกจากปุ่มทั้งหมด
+            document.querySelectorAll('.button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // เพิ่ม class 'active' ให้ปุ่มที่ถูกเลือก
+            document.getElementById(transport).classList.add('active');
+            selectedTransport = transport;
+        }
+
+        function confirmSelection() {
+            const province = document.getElementById("province").value;
+
+            if (!selectedTransport || !province) {
+                alert("กรุณาเลือกประเภทการเดินทางและจังหวัด");
+                return;
+            }
+
+            // สร้าง URL ของไฟล์ปลายทาง
+            const filePath = `${selectedTransport}/${selectedTransport}_${province}.html`;
+            alert(`คุณจะถูกนำไปที่: ${filePath}`);
+            window.location.href = filePath;
+        }
+    </script>
+</body>
+</html>
